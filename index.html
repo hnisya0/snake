@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Snake Game 2D</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- MENU AWAL -->
+    <div id="menu" class="screen">
+
+        <h1>🐍 SNAKE GAME</h1>
+        <p>Game Ular 2D</p>
+
+        <input
+            type="text"
+            id="username"
+            placeholder="Masukkan Username"
+            maxlength="20"
+        >
+
+        <input
+            type="tel"
+            id="whatsapp"
+            placeholder="Nomor WhatsApp"
+            maxlength="15"
+        >
+
+        <button onclick="mulaiGame()">
+            ▶ MULAI BERMAIN
+        </button>
+
+        <button onclick="lihatLeaderboard()">
+            🏆 LEADERBOARD
+        </button>
+
+    </div>
+
+
+    <!-- AREA GAME -->
+    <div id="gameScreen" class="screen hidden">
+
+        <div class="topbar">
+            <span>
+                👤 <span id="playerName">Player</span>
+            </span>
+
+            <span>
+                ⭐ Score: <span id="score">0</span>
+            </span>
+        </div>
+
+        <canvas id="gameCanvas"
+                width="400"
+                height="400">
+        </canvas>
+
+        <p>Gunakan tombol ↑ ↓ ← → untuk bergerak</p>
+
+        <button onclick="kembaliMenu()">
+            🏠 MENU
+        </button>
+
+    </div>
+
+
+    <!-- GAME OVER -->
+    <div id="gameOver" class="screen hidden">
+
+        <h1>💥 GAME OVER</h1>
+
+        <h2>
+            Score:
+            <span id="finalScore">0</span>
+        </h2>
+
+        <button onclick="mulaiGame()">
+            🔄 MAIN LAGI
+        </button>
+
+        <button onclick="lihatLeaderboard()">
+            🏆 LEADERBOARD
+        </button>
+
+        <button onclick="kembaliMenu()">
+            🏠 MENU
+        </button>
+
+    </div>
+
+
+    <!-- LEADERBOARD -->
+    <div id="leaderboard" class="screen hidden">
+
+        <h1>🏆 LEADERBOARD</h1>
+
+        <div id="leaderboardData">
+            Memuat data...
+        </div>
+
+        <button onclick="kembaliMenu()">
+            🏠 KEMBALI
+        </button>
+
+    </div>
+
+
+    <script src="game.js"></script>
+
+</body>
+</html>
