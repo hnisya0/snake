@@ -1,14 +1,51 @@
-// ======================================
-// GOOGLE APPS SCRIPT
-// ======================================
-
-const API_URL =
-    "MASUKKAN_URL_GOOGLE_APPS_SCRIPT_DI_SINI";
+// =====================================
+// SNAKE GAME 2D
+// =====================================
 
 
-// ======================================
-// ELEMENT HTML
-// ======================================
+// =====================================
+// GOOGLE SHEETS
+// =====================================
+
+// Nanti masukkan URL Google Apps Script
+// setelah Google Sheets selesai dibuat.
+
+const API_URL = "";
+
+
+// =====================================
+// AMBIL ELEMENT HTML
+// =====================================
+
+const menu =
+    document.getElementById("menu");
+
+const gameScreen =
+    document.getElementById("gameScreen");
+
+const gameOver =
+    document.getElementById("gameOver");
+
+const leaderboard =
+    document.getElementById("leaderboard");
+
+
+const usernameInput =
+    document.getElementById("username");
+
+const whatsappInput =
+    document.getElementById("whatsapp");
+
+
+const playerName =
+    document.getElementById("playerName");
+
+const scoreText =
+    document.getElementById("score");
+
+const finalScore =
+    document.getElementById("finalScore");
+
 
 const canvas =
     document.getElementById("gameCanvas");
@@ -17,80 +54,124 @@ const ctx =
     canvas.getContext("2d");
 
 
-// ======================================
+// =====================================
 // DATA GAME
-// ======================================
+// =====================================
 
 const ukuranKotak = 20;
+
+const jumlahKotak =
+    canvas.width / ukuranKotak;
+
 
 let snake = [];
 
 let makanan = {
-    x: 200,
-    y: 200
+    x: 0,
+    y: 0
 };
+
 
 let arah = "RIGHT";
 
 let score = 0;
 
-let gameLoop;
+let gameInterval = null;
+
 
 let username = "";
 
 let whatsapp = "";
 
 
-// ======================================
+// =====================================
+// TOMBOL MULAI
+// =====================================
+
+document
+    .getElementById("btnMulai")
+    .addEventListener(
+        "click",
+        mulaiGame
+    );
+
+
+// =====================================
 // MULAI GAME
-// ======================================
+// =====================================
 
 function mulaiGame() {
 
     username =
-        document.getElementById("username").value.trim();
+        usernameInput.value.trim();
 
     whatsapp =
-        document.getElementById("whatsapp").value.trim();
+        whatsappInput.value.trim();
 
+
+    // Validasi username
 
     if (username === "") {
 
-        alert("Username wajib diisi!");
+        alert(
+            "Silakan masukkan username!"
+        );
+
+        usernameInput.focus();
 
         return;
     }
 
+
+    // Validasi WhatsApp
 
     if (whatsapp === "") {
 
-        alert("Nomor WhatsApp wajib diisi!");
+        alert(
+            "Silakan masukkan nomor WhatsApp!"
+        );
+
+        whatsappInput.focus();
 
         return;
     }
 
 
-    document.getElementById("menu")
-        .classList.add("hidden");
+    // Tampilkan nama pemain
 
-    document.getElementById("gameOver")
-        .classList.add("hidden");
-
-    document.getElementById("leaderboard")
-        .classList.add("hidden");
-
-    document.getElementById("gameScreen")
-        .classList.remove("hidden");
+    playerName.textContent =
+        username;
 
 
-    document.getElementById("playerName")
-        .textContent = username;
+    // Sembunyikan semua halaman
 
+    menu.classList.add("hidden");
+
+    gameOver.classList.add("hidden");
+
+    leaderboard.classList.add("hidden");
+
+
+    // Tampilkan game
+
+    gameScreen.classList.remove(
+        "hidden"
+    );
+
+
+    // Reset score
 
     score = 0;
 
+    updateScore();
+
+
+    // Arah awal
+
     arah = "RIGHT";
 
+
+    // Buat ular
 
     snake = [
 
@@ -112,215 +193,472 @@ function mulaiGame() {
     ];
 
 
+    // Buat makanan
+
     buatMakanan();
 
-    updateScore();
+
+    // Hentikan interval lama
+
+    if (gameInterval !== null) {
+
+        clearInterval(
+            gameInterval
+        );
+
+    }
 
 
-    clearInterval(gameLoop);
+    // Jalankan game
 
-    gameLoop =
-        setInterval(updateGame, 120);
+    gameInterval =
+        setInterval(
+            updateGame,
+            120
+        );
+
+
+    // Gambar awal
+
+    gambarGame();
+
 }
 
 
-// ======================================
+// =====================================
 // UPDATE GAME
-// ======================================
+// =====================================
 
 function updateGame() {
 
     const kepala = {
+
         x: snake[0].x,
+
         y: snake[0].y
+
     };
 
 
+    // Gerakan ular
+
     if (arah === "UP") {
+
         kepala.y -= ukuranKotak;
+
     }
+
 
     if (arah === "DOWN") {
+
         kepala.y += ukuranKotak;
+
     }
+
 
     if (arah === "LEFT") {
+
         kepala.x -= ukuranKotak;
+
     }
+
 
     if (arah === "RIGHT") {
+
         kepala.x += ukuranKotak;
+
     }
 
 
-    // Tabrak dinding
+    // =================================
+    // CEK TABRAK DINDING
+    // =================================
 
     if (
+
         kepala.x < 0 ||
+
         kepala.x >= canvas.width ||
+
         kepala.y < 0 ||
+
         kepala.y >= canvas.height
+
     ) {
 
         selesaiGame();
 
         return;
+
     }
 
 
-    // Tabrak tubuh sendiri
+    // =================================
+    // CEK TABRAK TUBUH
+    // =================================
 
-    for (let i = 0; i < snake.length; i++) {
+    for (
+        let i = 0;
+        i < snake.length;
+        i++
+    ) {
 
         if (
+
             kepala.x === snake[i].x &&
+
             kepala.y === snake[i].y
+
         ) {
 
             selesaiGame();
 
             return;
+
         }
+
     }
 
+
+    // Masukkan kepala baru
 
     snake.unshift(kepala);
 
 
-    // Makan makanan
+    // =================================
+    // CEK MAKANAN
+    // =================================
 
     if (
+
         kepala.x === makanan.x &&
+
         kepala.y === makanan.y
+
     ) {
+
+        // Tambah score
 
         score += 10;
 
         updateScore();
 
+
+        // Buat makanan baru
+
         buatMakanan();
 
-    } else {
+    }
+
+    else {
+
+        // Hapus ekor
 
         snake.pop();
+
     }
 
 
+    // Gambar game
+
     gambarGame();
+
 }
 
 
-// ======================================
+// =====================================
 // GAMBAR GAME
-// ======================================
+// =====================================
 
 function gambarGame() {
 
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+    // Background
 
-
-    // Makanan
-
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "#101820";
 
     ctx.fillRect(
-        makanan.x,
-        makanan.y,
-        ukuranKotak,
-        ukuranKotak
+
+        0,
+
+        0,
+
+        canvas.width,
+
+        canvas.height
+
     );
 
 
-    // Ular
+    // =================================
+    // GRID
+    // =================================
 
-    snake.forEach((bagian, index) => {
-
-        if (index === 0) {
-
-            ctx.fillStyle = "#2ecc71";
-
-        } else {
-
-            ctx.fillStyle = "#27ae60";
-        }
+    ctx.strokeStyle =
+        "rgba(255,255,255,0.04)";
 
 
-        ctx.fillRect(
-            bagian.x,
-            bagian.y,
-            ukuranKotak - 2,
-            ukuranKotak - 2
+    for (
+        let x = 0;
+        x <= canvas.width;
+        x += ukuranKotak
+    ) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            0
         );
 
-    });
+        ctx.lineTo(
+            x,
+            canvas.height
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    for (
+        let y = 0;
+        y <= canvas.height;
+        y += ukuranKotak
+    ) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            y
+        );
+
+        ctx.lineTo(
+            canvas.width,
+            y
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    // =================================
+    // MAKANAN
+    // =================================
+
+    ctx.fillStyle = "#ff4757";
+
+    ctx.beginPath();
+
+    ctx.arc(
+
+        makanan.x + 9,
+
+        makanan.y + 9,
+
+        8,
+
+        0,
+
+        Math.PI * 2
+
+    );
+
+    ctx.fill();
+
+
+    // =================================
+    // ULAR
+    // =================================
+
+    snake.forEach(
+        (bagian, index) => {
+
+            if (index === 0) {
+
+                // Kepala
+
+                ctx.fillStyle =
+                    "#2ecc71";
+
+            }
+            else {
+
+                // Badan
+
+                ctx.fillStyle =
+                    "#27ae60";
+
+            }
+
+
+            ctx.fillRect(
+
+                bagian.x + 1,
+
+                bagian.y + 1,
+
+                ukuranKotak - 2,
+
+                ukuranKotak - 2
+
+            );
+
+
+            // Mata kepala
+
+            if (index === 0) {
+
+                ctx.fillStyle = "white";
+
+                ctx.beginPath();
+
+                ctx.arc(
+
+                    bagian.x + 6,
+
+                    bagian.y + 6,
+
+                    2,
+
+                    0,
+
+                    Math.PI * 2
+
+                );
+
+                ctx.fill();
+
+
+                ctx.beginPath();
+
+                ctx.arc(
+
+                    bagian.x + 14,
+
+                    bagian.y + 6,
+
+                    2,
+
+                    0,
+
+                    Math.PI * 2
+
+                );
+
+                ctx.fill();
+
+            }
+
+        }
+    );
+
 }
 
 
-// ======================================
-// BUAT MAKANAN
-// ======================================
+// =====================================
+// BUAT MAKANAN RANDOM
+// =====================================
 
 function buatMakanan() {
 
-    makanan.x =
-        Math.floor(
-            Math.random() *
-            (canvas.width / ukuranKotak)
-        ) * ukuranKotak;
+    let posisiValid = false;
 
 
-    makanan.y =
-        Math.floor(
-            Math.random() *
-            (canvas.height / ukuranKotak)
-        ) * ukuranKotak;
+    while (!posisiValid) {
+
+        makanan = {
+
+            x:
+                Math.floor(
+                    Math.random() *
+                    jumlahKotak
+                ) * ukuranKotak,
+
+            y:
+                Math.floor(
+                    Math.random() *
+                    jumlahKotak
+                ) * ukuranKotak
+
+        };
+
+
+        posisiValid =
+            !snake.some(
+                bagian =>
+
+                    bagian.x === makanan.x &&
+
+                    bagian.y === makanan.y
+
+            );
+
+    }
+
 }
 
 
-// ======================================
-// SCORE
-// ======================================
+// =====================================
+// UPDATE SCORE
+// =====================================
 
 function updateScore() {
 
-    document.getElementById("score")
-        .textContent = score;
+    scoreText.textContent =
+        score;
+
 }
 
 
-// ======================================
+// =====================================
 // GAME OVER
-// ======================================
+// =====================================
 
 function selesaiGame() {
 
-    clearInterval(gameLoop);
+    if (gameInterval !== null) {
+
+        clearInterval(
+            gameInterval
+        );
+
+        gameInterval = null;
+
+    }
 
 
-    document.getElementById("gameScreen")
-        .classList.add("hidden");
+    // Sembunyikan game
+
+    gameScreen.classList.add(
+        "hidden"
+    );
 
 
-    document.getElementById("gameOver")
-        .classList.remove("hidden");
+    // Tampilkan game over
+
+    gameOver.classList.remove(
+        "hidden"
+    );
 
 
-    document.getElementById("finalScore")
-        .textContent = score;
+    // Tampilkan score
 
+    finalScore.textContent =
+        score;
+
+
+    // Simpan score
 
     simpanScore();
+
 }
 
 
-// ======================================
+// =====================================
 // KEYBOARD
-// ======================================
+// =====================================
 
 document.addEventListener(
     "keydown",
@@ -332,6 +670,7 @@ document.addEventListener(
         ) {
 
             arah = "UP";
+
         }
 
 
@@ -341,6 +680,7 @@ document.addEventListener(
         ) {
 
             arah = "DOWN";
+
         }
 
 
@@ -350,6 +690,7 @@ document.addEventListener(
         ) {
 
             arah = "LEFT";
+
         }
 
 
@@ -359,66 +700,269 @@ document.addEventListener(
         ) {
 
             arah = "RIGHT";
+
         }
 
     }
 );
 
 
-// ======================================
-// SIMPAN SCORE KE GOOGLE SHEETS
-// ======================================
+// =====================================
+// KONTROL HP
+// =====================================
 
-async function simpanScore() {
+const controlButtons =
+    document.querySelectorAll(
+        ".control"
+    );
 
-    try {
 
-        await fetch(API_URL, {
+controlButtons.forEach(
+    button => {
 
-            method: "POST",
+        button.addEventListener(
+            "click",
+            function() {
 
-            body: JSON.stringify({
+                const arahBaru =
+                    this.dataset.direction;
 
-                username: username,
 
-                whatsapp: whatsapp,
+                if (
 
-                score: score
+                    arahBaru === "UP" &&
 
-            })
+                    arah !== "DOWN"
 
-        });
+                ) {
 
-        console.log("Score berhasil disimpan");
+                    arah = "UP";
 
-    } catch (error) {
+                }
 
-        console.log(
-            "Gagal menyimpan score:",
-            error
+
+                if (
+
+                    arahBaru === "DOWN" &&
+
+                    arah !== "UP"
+
+                ) {
+
+                    arah = "DOWN";
+
+                }
+
+
+                if (
+
+                    arahBaru === "LEFT" &&
+
+                    arah !== "RIGHT"
+
+                ) {
+
+                    arah = "LEFT";
+
+                }
+
+
+                if (
+
+                    arahBaru === "RIGHT" &&
+
+                    arah !== "LEFT"
+
+                ) {
+
+                    arah = "RIGHT";
+
+                }
+
+            }
         );
+
     }
+);
+
+
+// =====================================
+// MAIN LAGI
+// =====================================
+
+document
+    .getElementById("btnMainLagi")
+    .addEventListener(
+        "click",
+        mulaiGame
+    );
+
+
+// =====================================
+// KEMBALI MENU
+// =====================================
+
+function kembaliMenu() {
+
+    if (gameInterval !== null) {
+
+        clearInterval(
+            gameInterval
+        );
+
+        gameInterval = null;
+
+    }
+
+
+    gameScreen.classList.add(
+        "hidden"
+    );
+
+    gameOver.classList.add(
+        "hidden"
+    );
+
+    leaderboard.classList.add(
+        "hidden"
+    );
+
+
+    menu.classList.remove(
+        "hidden"
+    );
+
 }
 
 
-// ======================================
+// Tombol menu dari game
+
+document
+    .getElementById("btnMenuGame")
+    .addEventListener(
+        "click",
+        kembaliMenu
+    );
+
+
+// Tombol menu dari game over
+
+document
+    .getElementById("btnMenuGameOver")
+    .addEventListener(
+        "click",
+        kembaliMenu
+    );
+
+
+// Tombol menu leaderboard
+
+document
+    .getElementById("btnMenuLeaderboard")
+    .addEventListener(
+        "click",
+        kembaliMenu
+    );
+
+
+// =====================================
 // LEADERBOARD
-// ======================================
+// =====================================
+
+document
+    .getElementById("btnLeaderboard")
+    .addEventListener(
+        "click",
+        lihatLeaderboard
+    );
+
+
+document
+    .getElementById(
+        "btnLeaderboardGameOver"
+    )
+    .addEventListener(
+        "click",
+        lihatLeaderboard
+    );
+
 
 async function lihatLeaderboard() {
 
-    document.getElementById("menu")
-        .classList.add("hidden");
+    // Sembunyikan halaman
 
-    document.getElementById("gameOver")
-        .classList.add("hidden");
+    menu.classList.add("hidden");
 
-    document.getElementById("leaderboard")
-        .classList.remove("hidden");
+    gameScreen.classList.add("hidden");
+
+    gameOver.classList.add("hidden");
+
+
+    // Tampilkan leaderboard
+
+    leaderboard.classList.remove(
+        "hidden"
+    );
 
 
     const container =
-        document.getElementById("leaderboardData");
+        document.getElementById(
+            "leaderboardData"
+        );
+
+
+    // Jika API belum dipasang
+
+    if (API_URL === "") {
+
+        container.innerHTML = `
+
+            <div class="rank">
+
+                <span class="rank-name">
+                    🥇 Demo Player
+                </span>
+
+                <span class="rank-score">
+                    100
+                </span>
+
+            </div>
+
+            <div class="rank">
+
+                <span class="rank-name">
+                    🥈 Snake Master
+                </span>
+
+                <span class="rank-score">
+                    80
+                </span>
+
+            </div>
+
+            <div class="rank">
+
+                <span class="rank-name">
+                    🥉 Player 03
+                </span>
+
+                <span class="rank-score">
+                    60
+                </span>
+
+            </div>
+
+            <p style="padding:15px;font-size:13px;">
+                Hubungkan Google Sheets
+                untuk menampilkan data asli.
+            </p>
+
+        `;
+
+        return;
+
+    }
 
 
     container.innerHTML =
@@ -435,71 +979,179 @@ async function lihatLeaderboard() {
             await response.json();
 
 
+        // Urutkan score terbesar
+
+        data.sort(
+            (a, b) =>
+                Number(b.score) -
+                Number(a.score)
+        );
+
+
+        // Ambil TOP 10
+
+        const top10 =
+            data.slice(0, 10);
+
+
         container.innerHTML = "";
 
 
-        data
-            .sort(
-                (a, b) =>
-                    Number(b.score) -
-                    Number(a.score)
-            )
-            .slice(0, 10)
-            .forEach(
-                (player, index) => {
+        top10.forEach(
+            (player, index) => {
 
-                    const div =
-                        document.createElement("div");
-
-                    div.className = "rank";
+                const row =
+                    document.createElement(
+                        "div"
+                    );
 
 
-                    div.innerHTML = `
-
-                        <span>
-                            #${index + 1}
-                            ${player.username}
-                        </span>
-
-                        <strong>
-                            ${player.score}
-                        </strong>
-
-                    `;
+                row.className =
+                    "rank";
 
 
-                    container.appendChild(div);
+                let medal = "";
+
+
+                if (index === 0) {
+                    medal = "🥇";
+                }
+
+                else if (index === 1) {
+                    medal = "🥈";
+                }
+
+                else if (index === 2) {
+                    medal = "🥉";
+                }
+
+                else {
+                    medal =
+                        `#${index + 1}`;
+                }
+
+
+                row.innerHTML = `
+
+                    <span class="rank-name">
+
+                        ${medal}
+                        ${player.username}
+
+                    </span>
+
+                    <span class="rank-score">
+
+                        ${player.score}
+
+                    </span>
+
+                `;
+
+
+                container.appendChild(row);
+
+            }
+        );
+
+
+        if (top10.length === 0) {
+
+            container.innerHTML =
+                "Belum ada data pemain.";
+
+        }
+
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        container.innerHTML =
+            "❌ Gagal mengambil data leaderboard.";
+
+    }
+
+}
+
+
+// =====================================
+// SIMPAN SCORE
+// =====================================
+
+async function simpanScore() {
+
+    // Google Sheets belum dipasang
+
+    if (API_URL === "") {
+
+        console.log(
+            "Google Sheets belum terhubung."
+        );
+
+        console.log({
+
+            username: username,
+
+            whatsapp: whatsapp,
+
+            score: score
+
+        });
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL,
+                {
+
+                    method: "POST",
+
+                    body:
+                        JSON.stringify({
+
+                            username:
+                                username,
+
+                            whatsapp:
+                                whatsapp,
+
+                            score:
+                                score
+
+                        })
 
                 }
             );
 
 
-    } catch (error) {
+        const result =
+            await response.json();
 
-        container.innerHTML =
-            "❌ Gagal mengambil leaderboard.";
+
+        console.log(
+            "Score tersimpan:",
+            result
+        );
+
+
     }
-}
 
+    catch (error) {
 
-// ======================================
-// KEMBALI MENU
-// ======================================
+        console.error(
+            "Gagal menyimpan score:",
+            error
+        );
 
-function kembaliMenu() {
+    }
 
-    clearInterval(gameLoop);
-
-
-    document.getElementById("gameScreen")
-        .classList.add("hidden");
-
-    document.getElementById("gameOver")
-        .classList.add("hidden");
-
-    document.getElementById("leaderboard")
-        .classList.add("hidden");
-
-    document.getElementById("menu")
-        .classList.remove("hidden");
 }
